@@ -79,6 +79,19 @@ class MainViewController: UIViewController {
   @IBAction func actionSave() {
     guard let image = imagePreview.image else { return }
     
+    // 1: sink(receiveCompletion: receiveValue:)를 사용하여 Subscribe
+    PhotoWriter.save(image)
+      .sink(receiveCompletion: { [unowned self] completion in
+        // 2: 실패 할 경우 -> showMessage를 사용하여 화면에 오류내용 출력
+        if case .failure(let error) = completion {
+          self.showMessage("Error", description: error.localizedDescription)
+        }
+        self.actionClear()
+      }, receiveValue: { [unowned self] id in
+        // 3: 성공 할 경우 -> showMessage를 사용하여 화면에 Identifier 출력
+        self.showMessage("Saved with id: \(id)")
+      })
+      .store(in: &subscriptions)
   }
   
   @IBAction func actionAdd() {

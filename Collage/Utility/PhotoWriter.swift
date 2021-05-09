@@ -37,5 +37,26 @@ class PhotoWriter {
     case couldNotSavePhoto
     case generic(Swift.Error)
   }
-  
+  static func save(_ image: UIImage) -> Future<String, PhotoWriter.Error> {
+    return Future { resolve in
+        do {
+            try PHPhotoLibrary.shared().performChangesAndWait {
+              // 1: 이미지 저장을 위한 요청
+              let request = PHAssetChangeRequest.creationRequestForAsset(from: image)
+              
+              // 2: 새로 생성된 Asset의 Identifier
+              guard let savedAssetID =
+                request.placeholderForCreatedAsset?.localIdentifier else {
+                // 3: 실패했을 경우 -> couldNotSavePhoto
+                return resolve(.failure(.couldNotSavePhoto))
+              }
+
+              // 4: 성공했을 경우 -> .success with Result
+              resolve(.success(savedAssetID))
+            }
+        } catch {
+          resolve(.failure(.generic(error)))
+        }
+    }
+  }
 }
