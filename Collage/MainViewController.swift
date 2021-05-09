@@ -53,6 +53,9 @@ class MainViewController: UIViewController {
     let collageSize = imagePreview.frame.size
     
     images
+        .handleEvents(receiveOutput: { [weak self] photos in
+            self?.updateUI(photos: photos)
+        })
         .map { photos in
             UIImage.collage(images: photos, size: collageSize)
         }
