@@ -102,12 +102,19 @@ class MainViewController: UIViewController {
     navigationController!.pushViewController(photos, animated: true)
     
     photos.$selectedPhotosCount
-      .filter { $0 > 0 }
+      .filter { $0 > 0 && self.images.value.count < 6 }
       .map { "Selected \($0) photos" }
       .assign(to: \.title, on: self)
       .store(in: &subscriptions)
     
-    let newPhotos = photos.selectedPhotos.share()
+    let newPhotos = photos.selectedPhotos
+        .prefix(while: { [unowned self] _ in
+            // 해당 조건이 성립 했을때만 값을 방출한다.
+            return self.images.value.count < 6
+        })
+        .share()
+    
+    
     newPhotos
         .map { [unowned self] newImage in
             return self.images.value + [newImage]
