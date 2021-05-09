@@ -27,6 +27,7 @@
 /// THE SOFTWARE.
 
 import UIKit
+import Combine
 
 class MainViewController: UIViewController {
   
@@ -42,7 +43,8 @@ class MainViewController: UIViewController {
   @IBOutlet weak var itemAdd: UIBarButtonItem!
 
   // MARK: - Private properties
-  
+  private var subscriptions = Set<AnyCancellable>()
+  private let images = CurrentValueSubject<[UIImage], Never>([])
 
   // MARK: - View controller
   
@@ -50,6 +52,12 @@ class MainViewController: UIViewController {
     super.viewDidLoad()
     let collageSize = imagePreview.frame.size
     
+    images
+        .map { photos in
+            UIImage.collage(images: photos, size: collageSize)
+        }
+        .assign(to: \.image, on: imagePreview)
+        .store(in: &subscriptions)
   }
   
   private func updateUI(photos: [UIImage]) {
@@ -62,7 +70,7 @@ class MainViewController: UIViewController {
   // MARK: - Actions
   
   @IBAction func actionClear() {
-    
+    images.send([])
   }
   
   @IBAction func actionSave() {
@@ -71,7 +79,8 @@ class MainViewController: UIViewController {
   }
   
   @IBAction func actionAdd() {
-    
+    let newImages = images.value + [UIImage(named: "IMG_1907.jpg")!]
+    images.send(newImages)
   }
   
   private func showMessage(_ title: String, description: String? = nil) {
