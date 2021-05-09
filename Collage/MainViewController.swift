@@ -99,9 +99,17 @@ class MainViewController: UIViewController {
 //    images.send(newImages)
     
     let photos = storyboard!.instantiateViewController(withIdentifier: "PhotosViewController") as! PhotosViewController
+    // 기존에 선택 되어있는 사진의 개수로 초기화를 해준다.
+    photos.selectedPhotosCount = self.images.value.count
     navigationController!.pushViewController(photos, animated: true)
     
-    let newPhotos = photos.selectedPhotos
+    photos.$selectedPhotosCount
+      .filter { $0 > 0 }
+      .map { "Selected \($0) photos" }
+      .assign(to: \.title, on: self)
+      .store(in: &subscriptions)
+    
+    let newPhotos = photos.selectedPhotos.share()
     newPhotos
         .map { [unowned self] newImage in
             return self.images.value + [newImage]
@@ -111,10 +119,13 @@ class MainViewController: UIViewController {
   }
   
   private func showMessage(_ title: String, description: String? = nil) {
-    let alert = UIAlertController(title: title, message: description, preferredStyle: .alert)
-    alert.addAction(UIAlertAction(title: "Close", style: .default, handler: { alert in
-      self.dismiss(animated: true, completion: nil)
-    }))
-    present(alert, animated: true, completion: nil)
+//    let alert = UIAlertController(title: title, message: description, preferredStyle: .alert)
+//    alert.addAction(UIAlertAction(title: "Close", style: .default, handler: { alert in
+//      self.dismiss(animated: true, completion: nil)
+//    }))
+//    present(alert, animated: true, completion: nil)
+    alert(title: title, text: description)
+      .sink(receiveValue: { _ in })
+      .store(in: &subscriptions)
   }
 }
