@@ -67,7 +67,7 @@ class MainViewController: UIViewController {
     buttonSave.isEnabled = photos.count > 0 && photos.count % 2 == 0
     buttonClear.isEnabled = photos.count > 0
     itemAdd.isEnabled = photos.count < 6
-    title = photos.count > 0 ? "\(photos.count) photos" : "Collage"
+    self.title = photos.count > 0 ? "\(photos.count) photos" : "Collage"
   }
   
   // MARK: - Actions
@@ -99,8 +99,6 @@ class MainViewController: UIViewController {
 //    images.send(newImages)
     
     let photos = storyboard!.instantiateViewController(withIdentifier: "PhotosViewController") as! PhotosViewController
-    // 기존에 선택 되어있는 사진의 개수로 초기화를 해준다.
-    photos.selectedPhotosCount = self.images.value.count
     navigationController!.pushViewController(photos, animated: true)
     
     photos.$selectedPhotosCount
@@ -116,6 +114,17 @@ class MainViewController: UIViewController {
         }
         .assign(to: \.value, on: images)
         .store(in: &subscriptions)
+    
+    newPhotos
+        // 1: 생성 된 값을 무시하고 Completion 이벤트만 제공합니다.
+      .ignoreOutput()
+        // 2: 주어진 시간(초) 동안 대기합니다.
+      .delay(for: 2.0, scheduler: DispatchQueue.main)
+        // 3: 지정한 시간동안 "Selected X Photos"가 노출 된 이후에 updateUI(photos:)를 통해 기본 Title로 돌아갑니다.
+      .sink(receiveCompletion: { [unowned self] _ in
+        self.updateUI(photos: self.images.value)
+      }, receiveValue: { _ in })
+      .store(in: &subscriptions)
   }
   
   private func showMessage(_ title: String, description: String? = nil) {
