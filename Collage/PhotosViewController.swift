@@ -113,9 +113,11 @@ class PhotosViewController: UICollectionViewController {
         return
       }
       
-      // Send the selected photo
-        self.selectedPhotosSubject.send(image)
-        self.selectedPhotosCount += 1
+        if image.size.width > image.size.height {
+            // Send the selected photo
+              self.selectedPhotosSubject.send(image)
+              self.selectedPhotosCount += 1
+        }
     })
   }
 

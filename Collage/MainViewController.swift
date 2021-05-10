@@ -132,6 +132,18 @@ class MainViewController: UIViewController {
         self.updateUI(photos: self.images.value)
       }, receiveValue: { _ in })
       .store(in: &subscriptions)
+    
+    newPhotos
+        .filter({ _ in
+            self.images.value.count == 5
+        })
+        .flatMap { _ in
+            return photos.alert(title: "Limit reached", text: "To add more than 6 photos purchase Collage Pro")
+        }
+        .sink(receiveValue: { _ in
+            photos.navigationController?.popViewController(animated: true)
+        })
+        .store(in: &subscriptions)
   }
   
   private func showMessage(_ title: String, description: String? = nil) {
